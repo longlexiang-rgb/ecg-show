@@ -1,0 +1,940 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>卵电灵踪——夹持式鸟蛋电位检测存储仪</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        /* 自定义颜色变量 */
+        :root {
+            --primary-color: #0d9488; /* Teal 600 - 医疗级蓝绿色 */
+            --secondary-color: #0f766e; /* Teal 700 - 深色变体 */
+            --accent-color: #6366f1; /* Indigo 500 - 强调色 */
+            --accent-hover: #4f46e5; /* Indigo 600 - 强调色hover */
+            --bg-color: #fafaf9; /* Stone 50 - 更温暖的灰白 */
+            --text-color: #292524; /* Stone 800 - 更柔和的黑 */
+            --text-secondary: #78716c; /* Stone 500 - 次要文本 */
+            --error-color: #dc2626; /* 深沉的红 */
+            --success-color: #059669; /* 降低饱和度的成功色 */
+            --warning-color: #d97706; /* 琥珀色，减少刺眼感 */
+            --border-color: #e7e5e4; /* Stone 200 - 边框 */
+            --border-light: #f5f5f4; /* Stone 100 - 极淡边框 */
+        }
+        
+        /* 全局样式 */
+        body {
+            font-family: 'Inter', 'SF Pro Display', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', 'PingFang SC', 'Microsoft YaHei', 'Noto Sans SC', Arial, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            line-height: 1.75;
+        }
+        
+        /* 加载页面 */
+        .loader {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: var(--bg-color);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 9999;
+            transition: opacity 0.5s ease, visibility 0.5s ease;
+        }
+        .loader.hidden {
+            opacity: 0;
+            visibility: hidden;
+        }
+        .loader-content {
+            text-align: center;
+        }
+        .spinner {
+            width: 40px;
+            height: 40px;
+            border: 3px solid #e7e5e4;
+            border-top: 3px solid var(--primary-color);
+            border-radius: 50%;
+            animation: spin 1s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+            margin: 0 auto 20px;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        /* 自定义按钮样式 */
+        .btn-primary {
+            background-color: var(--primary-color);
+            background-image: linear-gradient(to bottom, rgba(255,255,255,0.08), transparent);
+            color: white;
+            border-radius: 0.375rem;
+            transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .btn-primary:hover {
+            background-color: var(--secondary-color);
+            transform: translateY(-2px);
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.05), 0 4px 6px -2px rgba(0, 0, 0, 0.025);
+        }
+        .btn-primary:active {
+            transform: translateY(0) scale(0.98);
+        }
+        
+        .btn-secondary {
+            border: 1px solid var(--primary-color);
+            background-color: transparent;
+            color: var(--primary-color);
+            border-radius: 0.375rem;
+            transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .btn-secondary:hover {
+            background-color: #f0fdfa;
+            transform: translateY(-2px);
+        }
+        
+        .btn-danger {
+            background-color: #fef2f2;
+            color: var(--error-color);
+            border: 1px solid #fecaca;
+            border-radius: 0.375rem;
+            transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .btn-danger:hover {
+            background-color: #fee2e2;
+            transform: translateY(-2px);
+        }
+        
+        /* 卡片样式 */
+        .card {
+            transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+            border-radius: 0.75rem;
+            overflow: hidden;
+            background-color: #ffffff;
+            border: 1px solid var(--border-light);
+        }
+        .card:hover {
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.05), 0 4px 6px -2px rgba(0, 0, 0, 0.025);
+            transform: translateY(-4px);
+            border-color: var(--border-color);
+        }
+        
+        /* 按钮动画 */
+        button {
+            transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+            font-weight: 500;
+        }
+        button:hover {
+            transform: translateY(-2px);
+        }
+        button:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+        
+        /* 导航链接动画 */
+        nav a {
+            transition: all 0.25s cubic-bezier(0.4, 0, 0, 1);
+            font-weight: 500;
+        }
+        nav a:hover {
+            transform: translateY(-1px);
+        }
+        
+        /* 面包屑导航 */
+        .breadcrumb {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            margin-bottom: 1.5rem;
+            font-size: 0.875rem;
+        }
+        .breadcrumb-item {
+            color: #a8a29e;
+        }
+        .breadcrumb-item.active {
+            color: #44403c;
+            font-weight: 500;
+        }
+        .breadcrumb-separator {
+            color: #a8a29e;
+            content: '>';
+        }
+        
+        /* 动画效果 */
+        .fade-in {
+            animation: fadeIn 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .slide-in-left {
+            animation: slideInLeft 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        @keyframes slideInLeft {
+            from { opacity: 0; transform: translateX(-20px); }
+            to { opacity: 1; transform: translateX(0); }
+        }
+        
+        .slide-in-right {
+            animation: slideInRight 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        @keyframes slideInRight {
+            from { opacity: 0; transform: translateX(20px); }
+            to { opacity: 1; transform: translateX(0); }
+        }
+        
+        /* 首屏Banner动画 */
+        .banner-animation {
+            animation: bannerFadeIn 0.8s ease-out;
+        }
+        @keyframes bannerFadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+        
+        .banner-title {
+            animation: titleSlideIn 1s ease-out;
+        }
+        @keyframes titleSlideIn {
+            from { opacity: 0; transform: translateX(-30px); }
+            to { opacity: 1; transform: translateX(0); }
+        }
+        
+        .banner-subtitle {
+            animation: subtitleSlideIn 1s ease-out 0.3s both;
+        }
+        @keyframes subtitleSlideIn {
+            from { opacity: 0; transform: translateX(30px); }
+            to { opacity: 1; transform: translateX(0); }
+        }
+        
+        .floating-effect {
+            animation: floating 3s ease-in-out infinite;
+        }
+        @keyframes floating {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-3px); }
+        }
+        
+        /* 技术优势动画 */
+        .advantage-item {
+            opacity: 0;
+            transform: translateY(20px);
+            transition: all 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        
+        .advantage-item.animate {
+            opacity: 1;
+            transform: translateY(0) scale(1);
+        }
+        
+        /* 产品卡片动画 */
+        .product-card {
+            opacity: 0;
+            transform: translateX(30px);
+            transition: all 0.7s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        
+        .product-card.animate {
+            opacity: 1;
+            transform: translateX(0);
+        }
+        
+        .product-card:hover {
+            transform: translateY(-5px) rotate(1deg);
+            box-shadow: 0 15px 20px -5px rgba(0, 0, 0, 0.1);
+            transition: all 0.3s ease;
+        }
+        
+        .product-card:hover .product-app {
+            color: #3b82f6;
+            transition: color 0.3s ease;
+        }
+        
+        /* 场景配图动画 */
+        .scene-image {
+            transition: transform 2s ease;
+        }
+        
+        .scene-image:hover {
+            transform: scale(1.02);
+        }
+        
+        /* 推广方向图标动画 */
+        .direction-icon {
+            animation: rotateSlow 5s linear infinite;
+        }
+        
+        @keyframes rotateSlow {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+        
+        /* 信号流动动画 */
+        .signal-flow {
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .signal-flow::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(59, 130, 246, 0.2), transparent);
+            animation: signalFlow 4s linear infinite;
+        }
+        
+        @keyframes signalFlow {
+            0% { left: -100%; }
+            100% { left: 100%; }
+        }
+        
+        /* 滚动触发动画 */
+        .scroll-animate {
+            opacity: 0;
+            transform: translateY(30px);
+            transition: all 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        
+        .scroll-animate.animate {
+            opacity: 1;
+            transform: translateY(0);
+        }
+        
+        /* 移动端适配 */
+        @media (max-width: 768px) {
+            .product-card:hover {
+                transform: translateY(-2px) rotate(0.5deg);
+            }
+            
+            .floating-effect {
+                animation: floating 4s ease-in-out infinite;
+            }
+            
+            @keyframes floating {
+                0%, 100% { transform: translateY(0); }
+                50% { transform: translateY(-1px); }
+            }
+        }
+        
+        /* 响应式导航 */
+        /* 默认显示桌面导航，隐藏移动端菜单按钮 */
+        .mobile-menu-btn {
+            display: none;
+            transition: all 0.25s ease;
+        }
+        
+        /* 汉堡图标激活状态 */
+        .mobile-menu-btn.active {
+            border: 2px solid white;
+            border-radius: 4px;
+        }
+        
+        /* 桌面导航默认显示 */
+        #nav-links {
+            display: flex;
+        }
+        
+        /* 登录后导航默认隐藏，由JavaScript控制显示 */
+        #user-info {
+            display: none;
+        }
+        
+        /* 移动端导航菜单默认隐藏 */
+        #mobile-nav-links,
+        #mobile-user-info {
+            display: none;
+        }
+        
+        /* 只有点击汉堡按钮后才显示 */
+        #mobile-nav-links.active,
+        #mobile-user-info.active {
+            display: block !important;
+            animation: slideDown 0.3s ease;
+        }
+        
+        /* 小屏幕下的响应式调整 */
+        @media (max-width: 768px) {
+            /* 隐藏桌面导航 */
+            #nav-links,
+            #user-info {
+                display: none !important;
+            }
+            
+            /* 显示移动端菜单按钮 */
+            .mobile-menu-btn {
+                display: block;
+            }
+        }
+        
+        @keyframes slideDown {
+            from { opacity: 0; transform: translateY(-10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        /* 导航栏样式 */
+        nav {
+            background: linear-gradient(135deg, #0f766e 0%, #0d9488 50%, #14b8a6 100%);
+            min-height: 4rem;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+        }
+        
+        /* 导航链接按钮 */
+        .nav-links a, .nav-links button {
+            background-color: transparent;
+            backdrop-filter: blur(8px);
+            transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        
+        .nav-links a:hover, .nav-links button:hover {
+            background-color: rgba(255,255,255,0.15);
+            transform: translateY(-1px);
+        }
+        
+        /* 左侧标题容器 */
+        nav .flex-1 {
+            min-width: 0;
+        }
+        
+        nav h1 {
+            white-space: normal;
+            line-height: 1.2;
+        }
+        
+        /* 响应式细节 */
+        @media (max-width: 768px) {
+            nav {
+                min-height: 5rem;
+                padding: 0.5rem;
+            }
+            
+            nav h1 {
+                font-size: 1.5rem;
+            }
+            
+            .card {
+                padding: 1rem;
+            }
+            
+            button {
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+<body class="bg-gray-50 min-h-screen flex flex-col">
+    <!-- 加载页面 -->
+    <div class="loader" id="loader">
+        <div class="loader-content">
+            <div class="spinner"></div>
+            <h2 class="text-xl font-bold text-green-600">加载中...</h2>
+        </div>
+    </div>
+    
+    <!-- 导航栏 -->
+    <nav class="bg-green-500 text-white p-4 sticky top-0 z-50">
+        <div class="container mx-auto flex justify-between items-center">
+            <div class="flex items-center">
+                <img src="/ecg-show/assets/images/logo.png" alt="卵电灵踪" class="w-10 h-10 mr-3">
+                <h1 class="text-2xl font-bold">ECG波形数据管理系统</h1>
+            </div>
+            
+            <div class="flex items-center">
+                <!-- 桌面导航 -->
+                <div id="nav-links" class="nav-links flex items-center md:flex">
+                    <a href="/ecg-show/index.html" class="mr-4 px-4 py-2 bg-green-600 rounded hover:bg-green-700 transition-all duration-300">数据管理</a>
+                    <a href="/ecg-show/team.html" class="mr-4 px-4 py-2 bg-green-600 rounded hover:bg-green-700 transition-all duration-300">项目介绍</a>
+                    <button id="login-btn" class="mr-4 px-4 py-2 bg-green-600 rounded hover:bg-green-700 transition-all duration-300">登录</button>
+                    <button id="register-btn" class="px-4 py-2 bg-blue-500 rounded hover:bg-blue-600 transition-all duration-300">注册</button>
+                </div>
+                
+                <!-- 登录后导航 -->
+                <div id="user-info" class="nav-links flex items-center md:flex">
+                    <a href="/ecg-show/index.html" class="mr-4 px-4 py-2 bg-green-600 rounded hover:bg-green-700 transition-all duration-300">数据管理</a>
+                    <a href="/ecg-show/team.html" class="mr-4 px-4 py-2 bg-green-600 rounded hover:bg-green-700 transition-all duration-300">项目介绍</a>
+                    <span id="username" class="mr-4 font-medium"></span>
+                    <button id="logout-btn" class="px-4 py-2 bg-red-500 rounded hover:bg-red-600 transition-all duration-300">退出</button>
+                </div>
+                
+                <!-- 移动端菜单按钮 -->
+                <button class="mobile-menu-btn text-white focus:outline-none p-2" style="cursor: pointer;">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
+                    </svg>
+                </button>
+            </div>
+        </div>
+        
+        <!-- 移动端导航菜单 -->
+        <div class="md:hidden">
+            <!-- 移动端导航链接 -->
+            <div id="mobile-nav-links" class="nav-links hidden">
+                <a href="/ecg-show/index.html" class="block px-4 py-2 hover:bg-green-700 transition-all duration-300 text-center">数据管理</a>
+                <a href="/ecg-show/team.html" class="block px-4 py-2 hover:bg-green-700 transition-all duration-300 text-center">项目介绍</a>
+                <button id="mobile-login-btn" class="block w-full px-4 py-2 hover:bg-green-700 transition-all duration-300 text-center">登录</button>
+                <button id="mobile-register-btn" class="block w-full px-4 py-2 hover:bg-blue-600 transition-all duration-300 text-center">注册</button>
+            </div>
+            
+            <!-- 移动端登录后导航 -->
+            <div id="mobile-user-info" class="nav-links hidden">
+                <a href="/ecg-show/index.html" class="block px-4 py-2 hover:bg-green-700 transition-all duration-300 text-center">数据管理</a>
+                <a href="/ecg-show/team.html" class="block px-4 py-2 hover:bg-green-700 transition-all duration-300 text-center">项目介绍</a>
+                <span id="mobile-username" class="block px-4 py-2 font-medium text-center"></span>
+                <button id="mobile-logout-btn" class="block w-full px-4 py-2 hover:bg-red-600 transition-all duration-300 text-center">退出</button>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container mx-auto flex-grow p-4">
+        <!-- 面包屑导航 -->
+        <div class="breadcrumb">
+            <a href="/ecg-show/index.html" class="breadcrumb-item hover:text-green-600">首页</a>
+            <span class="breadcrumb-separator">/</span>
+            <span class="breadcrumb-item active">项目介绍</span>
+        </div>
+        
+        <!-- 首屏banner -->
+        <section class="bg-gradient-to-r from-blue-600 to-teal-500 text-white p-12 rounded-lg shadow-lg mb-12 banner-animation relative" id="bannerSection">
+            <div class="container mx-auto text-center">
+                <h1 class="text-4xl md:text-5xl font-bold mb-6 banner-title">卵电灵踪</h1>
+                <h2 class="text-2xl md:text-3xl font-semibold mb-8 banner-title">夹持式鸟蛋电位检测存储仪</h2>
+                <p class="text-xl mb-8 max-w-3xl mx-auto banner-subtitle">非侵入式鸟蛋电位检测技术引领者</p>
+                <div class="flex flex-wrap justify-center gap-4 floating-effect">
+                    <button id="learn-core-tech" class="px-8 py-3 bg-white text-blue-600 font-bold rounded-lg hover:bg-opacity-90 transition-all">了解核心技术</button>
+                    <button id="view-products" class="px-8 py-3 bg-transparent border-2 border-white text-white font-bold rounded-lg hover:bg-white hover:bg-opacity-10 transition-all">查看产品系列</button>
+                </div>
+            </div>
+        </section>
+
+        <!-- 核心专利技术 -->
+        <section id="core-technology" class="bg-white p-8 rounded-lg shadow-lg mb-12 scroll-animate">
+            <h2 class="text-3xl font-bold mb-8 text-center text-teal-600">核心专利技术</h2>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-8 items-center">
+                <div class="scroll-animate">
+                    <h3 class="text-2xl font-bold mb-4 text-teal-600">夹持式电极非侵入性采集技术</h3>
+                    <p class="mb-4 text-gray-700">
+                        本项目核心自主知识产权为<span class="font-semibold">夹持式电极非侵入性采集技术</span>，结合低功耗嵌入式系统与边缘计算算法，突破传统禽蛋检测技术的侵入性、低精度、适配性差等痛点，实现<span class="font-semibold">分钟级精度产卵时间监测</span>与<span class="font-semibold">产蛋后24-48小时早期受精判别</span>，全程无接触鸟蛋胚胎，从技术层面解决了野生鸟类监测"惊扰弃巢"与养殖禽蛋检测"早期识别滞后"的行业核心难题。
+                    </p>
+                    <p class="text-gray-700">
+                        该技术通过特制夹持式电极采集蛋壳表面生物电位信号，结合AI算法对电位特征进行智能分析，可精准识别禽蛋受精状态、胚胎发育阶段及活力变化，同时适配不同蛋壳厚度、尺寸的禽蛋种类，搭配抗干扰电路与温度补偿模块，在复杂环境下仍能保持信号采集的稳定性与准确性，相关技术已获<span class="font-semibold">国家发明专利公示</span>，形成坚实的技术壁垒。
+                    </p>
+                </div>
+                <div class="scroll-animate signal-flow">
+                    <div class="bg-gray-100 p-6 rounded-lg">
+                        <img src="https://trae-api-cn.mchost.guru/api/ide/v1/text_to_image?prompt=clamp%20electrode%20device%20for%20bird%20egg%20detection%20with%20schematic%20diagram%20showing%20electrical%20potential%20signal%20collection&image_size=landscape_16_9" alt="夹持式电极工作原理示意图" class="w-full h-auto rounded-lg">
+                        <p class="text-center text-gray-600 mt-4">夹持式电极工作原理示意图</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 技术核心优势 -->
+        <section class="bg-white p-8 rounded-lg shadow-lg mb-12 scroll-animate">
+            <h2 class="text-3xl font-bold mb-8 text-center text-teal-600">技术核心优势</h2>
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                <div class="card p-6 advantage-item">
+                    <div class="w-16 h-16 bg-teal-100 rounded-full flex items-center justify-center mb-4">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 text-teal-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
+                    </div>
+                    <h3 class="text-xl font-bold mb-2 text-teal-600">非侵入式检测</h3>
+                    <p class="text-gray-700">全程无接触胚胎，避免对野生鸟类繁殖造成惊扰，同时降低养殖禽蛋破损率，从源头保障检测安全性</p>
+                </div>
+                <div class="card p-6 advantage-item">
+                    <div class="w-16 h-16 bg-teal-100 rounded-full flex items-center justify-center mb-4">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 text-teal-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
+                    </div>
+                    <h3 class="text-xl font-bold mb-2 text-teal-600">高精度高时效</h3>
+                    <p class="text-gray-700">产卵时间监测精度达分钟级，养殖禽蛋早期受精判别较传统方法提前数天，大幅提升监测与养殖效率</p>
+                </div>
+                <div class="card p-6 advantage-item">
+                    <div class="w-16 h-16 bg-teal-100 rounded-full flex items-center justify-center mb-4">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 text-teal-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+                        </svg>
+                    </div>
+                    <h3 class="text-xl font-bold mb-2 text-teal-600">多物种广适配</h3>
+                    <p class="text-gray-700">通过可更换式硅胶模具套件，适配从蜂鸟蛋到鸵鸟蛋的毫米级至厘米级尺寸跨度，覆盖野生鸟类与特种养殖禽类全品类</p>
+                </div>
+                <div class="card p-6 advantage-item">
+                    <div class="w-16 h-16 bg-teal-100 rounded-full flex items-center justify-center mb-4">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 text-teal-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 15a4 4 0 004 4h9a5 5 0 10-.1-9.999 5.002 5.002 0 10-9.78 2.096A4.001 4.001 0 003 15z" />
+                        </svg>
+                    </div>
+                    <h3 class="text-xl font-bold mb-2 text-teal-600">强环境适应性</h3>
+                    <p class="text-gray-700">集成抗干扰、温度补偿设计，可在-10℃至50℃、湿度90%以上的野外/养殖环境稳定工作，支持太阳能供电与远程数据传输</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- 三大产品系列 -->
+        <section id="products" class="bg-white p-8 rounded-lg shadow-lg mb-12 scroll-animate">
+            <h2 class="text-3xl font-bold mb-8 text-center text-teal-600">三大产品系列及应用场景</h2>
+            <p class="text-center text-gray-700 mb-8 max-w-3xl mx-auto scroll-animate">
+                依托核心专利技术，打造<span class="font-semibold">"卵迹""卵灵""卵探"</span>三大产品系列，精准匹配生态保护、规模化养殖、野外科研三大核心场景，实现技术落地的场景化、专业化适配
+            </p>
+            
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <!-- 卵迹系列 -->
+                <div class="card p-6 product-card">
+                    <div class="h-48 bg-blue-100 rounded-lg flex items-center justify-center mb-4 scene-image">
+                        <img src="https://trae-api-cn.mchost.guru/api/ide/v1/text_to_image?prompt=field%20ecological%20detection%20device%20for%20bird%20eggs%20in%20natural%20reserve%20setting&image_size=landscape_4_3" alt="卵迹系列·野外生态检测版" class="w-full h-full object-cover rounded-lg">
+                    </div>
+                    <h3 class="text-2xl font-bold mb-2 text-teal-600">卵迹系列</h3>
+                    <h4 class="text-lg font-semibold mb-4 text-gray-700">野外生态检测版</h4>
+                    <p class="text-gray-700 mb-4 product-app">
+                        <span class="font-semibold">核心应用：</span>国家级/省级自然保护区、鸟类监测站、生态科研院所的野生鸟类繁殖监测
+                    </p>
+                    <p class="text-gray-700">
+                        <span class="font-semibold">适配特性：</span>夹爪特殊改良适配不同野生鸟类蛋种，支持长时续航、野外环境抗干扰，可实时上传监测数据至生态监测平台，为气候变化响应、濒危物种保护提供高精度数据支撑
+                    </p>
+                </div>
+                <!-- 卵灵系列 -->
+                <div class="card p-6 product-card">
+                    <div class="h-48 bg-green-100 rounded-lg flex items-center justify-center mb-4 scene-image">
+                        <img src="https://trae-api-cn.mchost.guru/api/ide/v1/text_to_image?prompt=ostrich%20farm%20egg%20detection%20device%20in%20industrial%20setting&image_size=landscape_4_3" alt="卵灵系列·鸵鸟养殖专业版" class="w-full h-full object-cover rounded-lg">
+                    </div>
+                    <h3 class="text-2xl font-bold mb-2 text-teal-600">卵灵系列</h3>
+                    <h4 class="text-lg font-semibold mb-4 text-gray-700">鸵鸟养殖专业版</h4>
+                    <p class="text-gray-700 mb-4 product-app">
+                        <span class="font-semibold">核心应用：</span>规模化鸵鸟养殖场、特种禽类繁育基地的种蛋孵化全程监测
+                    </p>
+                    <p class="text-gray-700">
+                        <span class="font-semibold">适配特性：</span>夹爪加固适配鸵鸟蛋等超大蛋种，可与孵化机无缝对接，实现受精判别、死胚预警、孵化环境联动调控，解决传统照蛋法因蛋壳厚失效的行业难题
+                    </p>
+                </div>
+                <!-- 卵探系列 -->
+                <div class="card p-6 product-card">
+                    <div class="h-48 bg-purple-100 rounded-lg flex items-center justify-center mb-4 scene-image">
+                        <img src="https://trae-api-cn.mchost.guru/api/ide/v1/text_to_image?prompt=portable%20bird%20egg%20detection%20device%20with%20smartphone%20connection%20for%20field%20research&image_size=landscape_4_3" alt="卵探系列·便携科研版" class="w-full h-full object-cover rounded-lg">
+                    </div>
+                    <h3 class="text-2xl font-bold mb-2 text-teal-600">卵探系列</h3>
+                    <h4 class="text-lg font-semibold mb-4 text-gray-700">便携科研版</h4>
+                    <p class="text-gray-700 mb-4 product-app">
+                        <span class="font-semibold">核心应用：</span>鸟类学家、野外保护工作者的现场快速检测与科研数据采集
+                    </p>
+                    <p class="text-gray-700">
+                        <span class="font-semibold">适配特性：</span>轻量便携设计，支持与手机APP无线连接，实现检测数据的快速查看、存储与导出，满足野外移动科研的灵活需求
+                    </p>
+                </div>
+            </div>
+        </section>
+
+        <!-- 技术推广与落地 -->
+        <section class="bg-white p-8 rounded-lg shadow-lg mb-12 scroll-animate">
+            <h2 class="text-3xl font-bold mb-8 text-center text-teal-600">技术推广与落地</h2>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                <div class="scroll-animate">
+                    <h3 class="text-2xl font-bold mb-4 text-teal-600">推广方向</h3>
+                    <ul class="space-y-4">
+                        <li class="flex items-start">
+                            <div class="w-6 h-6 bg-teal-100 rounded-full flex items-center justify-center mr-3 mt-1 flex-shrink-0 direction-icon">
+                                <span class="text-teal-600 font-bold">1</span>
+                            </div>
+                            <div>
+                                <h4 class="font-bold text-gray-800 mb-1">生态保护领域</h4>
+                                <p class="text-gray-700">与中科院动物研究所、国内各级自然保护区建立联合实验室与示范应用点，纳入自然保护区智能化监测网络标准配置</p>
+                            </div>
+                        </li>
+                        <li class="flex items-start">
+                            <div class="w-6 h-6 bg-teal-100 rounded-full flex items-center justify-center mr-3 mt-1 flex-shrink-0 direction-icon">
+                                <span class="text-teal-600 font-bold">2</span>
+                            </div>
+                            <div>
+                                <h4 class="font-bold text-gray-800 mb-1">特种养殖领域</h4>
+                                <p class="text-gray-700">聚焦山东、内蒙古、甘肃等鸵鸟养殖主产区，与规模化养殖场、养殖协会合作，打造智慧孵化示范基地，实现技术规模化落地</p>
+                            </div>
+                        </li>
+                        <li class="flex items-start">
+                            <div class="w-6 h-6 bg-teal-100 rounded-full flex items-center justify-center mr-3 mt-1 flex-shrink-0 direction-icon">
+                                <span class="text-teal-600 font-bold">3</span>
+                            </div>
+                            <div>
+                                <h4 class="font-bold text-gray-800 mb-1">科研合作领域</h4>
+                                <p class="text-gray-700">与中国农业大学、林业类高校等科研机构合作，共建鸟类电生理数据库，推动技术在爬行动物卵监测等领域的延伸应用</p>
+                            </div>
+                        </li>
+                    </ul>
+                </div>
+                <div class="scroll-animate">
+                    <h3 class="text-2xl font-bold mb-4 text-teal-600">落地模式</h3>
+                    <p class="text-gray-700 mb-6">
+                        采用<span class="font-semibold">"研发+外协组装"</span>生产模式，核心技术自主迭代，量产环节由专业制造企业代工，保障产品质量与供应效率；同时通过<span class="font-semibold">学术会议、养殖博览会、政府招标</span>等渠道进行技术推广，结合"设备销售+技术咨询+数据服务"的多元化合作模式，实现技术的快速落地与市场拓展。
+                    </p>
+                    <div class="bg-teal-50 p-6 rounded-lg">
+                        <h4 class="font-bold text-teal-600 mb-3">核心价值</h4>
+                        <ul class="space-y-2">
+                            <li class="flex items-center">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-teal-600 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                                </svg>
+                                <span class="text-gray-700">解决野生鸟类监测惊扰弃巢问题</span>
+                            </li>
+                            <li class="flex items-center">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-teal-600 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                                </svg>
+                                <span class="text-gray-700">提升养殖禽蛋早期受精判别效率</span>
+                            </li>
+                            <li class="flex items-center">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-teal-600 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                                </svg>
+                                <span class="text-gray-700">建立鸟类电生理数据标准体系</span>
+                            </li>
+                            <li class="flex items-center">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-teal-600 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                                </svg>
+                                <span class="text-gray-700">推动生态保护与智慧养殖融合发展</span>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </div>
+
+    <footer class="bg-green-700 text-white p-6 mt-8">
+        <div class="container mx-auto text-center">
+            <p>© 2026 卵电灵踪——夹持式鸟蛋电位检测存储仪</p>
+            <p class="text-sm mt-2">中国农业大学</p>
+        </div>
+    </footer>
+
+    <!-- 消息提示容器 -->
+    <div id="toast-container"></div>
+
+    <script>
+        // 本地存储
+        let currentUser = JSON.parse(localStorage.getItem('currentUser')) || null;
+        let token = localStorage.getItem('token') || null;
+
+        // 初始化页面
+        function initPage() {
+            if (currentUser && token) {
+                // 显示登录后导航，隐藏未登录导航
+                document.getElementById('nav-links').style.display = 'none';
+                document.getElementById('user-info').style.display = 'flex';
+                
+                // 更新用户名显示
+                document.getElementById('username').textContent = currentUser.username;
+                document.getElementById('mobile-username').textContent = currentUser.username;
+                
+                // 移动端导航
+                document.getElementById('mobile-nav-links').classList.remove('active');
+                document.getElementById('mobile-user-info').classList.remove('active');
+            } else {
+                // 显示未登录导航，隐藏登录后导航
+                document.getElementById('nav-links').style.display = 'flex';
+                document.getElementById('user-info').style.display = 'none';
+                
+                // 移动端导航
+                document.getElementById('mobile-nav-links').classList.remove('active');
+                document.getElementById('mobile-user-info').classList.remove('active');
+            }
+        }
+
+        // 登录按钮点击事件
+        document.getElementById('login-btn').addEventListener('click', function() {
+            window.location.href = '/ecg-show/index.html?form=login';
+        });
+
+        // 注册按钮点击事件
+        document.getElementById('register-btn').addEventListener('click', function() {
+            window.location.href = '/ecg-show/index.html?form=register';
+        });
+
+        // 退出登录
+        document.getElementById('logout-btn').addEventListener('click', function() {
+            currentUser = null;
+            token = null;
+            localStorage.removeItem('currentUser');
+            localStorage.removeItem('token');
+            initPage();
+        });
+
+        // 移动端菜单
+        function initMobileMenu() {
+            console.log('初始化移动端菜单...');
+            // 确保DOM元素已加载
+            setTimeout(function() {
+                const mobileMenuBtn = document.querySelector('.mobile-menu-btn');
+                console.log('找到移动菜单按钮:', mobileMenuBtn);
+                if (mobileMenuBtn) {
+                    // 直接绑定到SVG元素，确保点击事件能触发
+                    const svgElement = mobileMenuBtn.querySelector('svg');
+                    console.log('找到SVG元素:', svgElement);
+                    
+                    // 为按钮和SVG都添加点击事件
+                    function handleMenuClick(e) {
+                        e.stopPropagation(); // 防止事件冒泡
+                        console.log('菜单按钮被点击!');
+                        
+                        const mobileNavLinks = document.getElementById('mobile-nav-links');
+                        const mobileUserInfo = document.getElementById('mobile-user-info');
+                        
+                        console.log('找到菜单元素:', mobileNavLinks, mobileUserInfo);
+                        console.log('当前用户状态:', currentUser, token);
+                        
+                        // 检查当前用户状态
+                        if (currentUser && token) {
+                            // 切换登录后菜单
+                            console.log('切换登录后菜单');
+                            mobileUserInfo.classList.toggle('active');
+                            console.log('登录后菜单状态:', mobileUserInfo.classList.contains('active'));
+                            // 确保未登录菜单关闭
+                            mobileNavLinks.classList.remove('active');
+                            
+                            // 切换汉堡图标激活状态
+                            mobileMenuBtn.classList.toggle('active', mobileUserInfo.classList.contains('active'));
+                        } else {
+                            // 切换未登录菜单
+                            console.log('切换未登录菜单');
+                            mobileNavLinks.classList.toggle('active');
+                            console.log('未登录菜单状态:', mobileNavLinks.classList.contains('active'));
+                            // 确保登录后菜单关闭
+                            mobileUserInfo.classList.remove('active');
+                            
+                            // 切换汉堡图标激活状态
+                            mobileMenuBtn.classList.toggle('active', mobileNavLinks.classList.contains('active'));
+                        }
+                    }
+                    
+                    // 绑定到按钮
+                    mobileMenuBtn.addEventListener('click', handleMenuClick);
+                    // 绑定到SVG
+                    if (svgElement) {
+                        svgElement.addEventListener('click', handleMenuClick);
+                    }
+                }
+            }, 100); // 小延迟确保DOM完全加载
+        }
+
+        // 点击页面其他地方关闭菜单
+        document.addEventListener('click', function(e) {
+            const mobileMenuBtn = document.querySelector('.mobile-menu-btn');
+            const mobileNavLinks = document.getElementById('mobile-nav-links');
+            const mobileUserInfo = document.getElementById('mobile-user-info');
+            
+            // 检查点击是否在菜单按钮或菜单内容之外
+            if (mobileMenuBtn && !mobileMenuBtn.contains(e.target) && 
+                mobileNavLinks && !mobileNavLinks.contains(e.target) && 
+                mobileUserInfo && !mobileUserInfo.contains(e.target)) {
+                // 关闭所有菜单
+                mobileNavLinks.classList.remove('active');
+                mobileUserInfo.classList.remove('active');
+                // 移除汉堡图标激活状态
+                mobileMenuBtn.classList.remove('active');
+            }
+        });
+
+        // 在DOM加载完成后初始化页面和移动端菜单
+        window.addEventListener('DOMContentLoaded', function() {
+            initPage();
+            initMobileMenu();
+        });
+
+        // 隐藏加载页面
+        window.addEventListener('load', function() {
+            setTimeout(function() {
+                const loader = document.getElementById('loader');
+                if (loader) {
+                    loader.classList.add('hidden');
+                }
+            }, 500); // 延迟500ms，确保所有内容都已加载
+        });
+        
+        // 滚动触发动画
+        function handleScrollAnimation() {
+            const elements = document.querySelectorAll('.scroll-animate, .advantage-item, .product-card');
+            
+            elements.forEach((element, index) => {
+                const elementTop = element.getBoundingClientRect().top;
+                const windowHeight = window.innerHeight;
+                
+                if (elementTop < windowHeight - 100) {
+                    // 添加延迟，让元素依次动画
+                    setTimeout(() => {
+                        element.classList.add('animate');
+                    }, index * 100);
+                }
+            });
+        }
+        
+        // 初始检查
+        window.addEventListener('load', handleScrollAnimation);
+        // 滚动时检查
+        window.addEventListener('scroll', handleScrollAnimation);
+        
+        // 平滑滚动到指定元素
+        function smoothScrollTo(element) {
+            // 计算目标元素的位置
+            const targetPosition = element.getBoundingClientRect().top + window.pageYOffset;
+            const startPosition = window.pageYOffset;
+            const distance = targetPosition - startPosition;
+            const duration = 800; // 动画持续时间（毫秒）
+            let start = null;
+            
+            // 使用requestAnimationFrame实现平滑滚动
+            function animation(currentTime) {
+                if (start === null) start = currentTime;
+                const timeElapsed = currentTime - start;
+                const run = ease(timeElapsed, startPosition, distance, duration);
+                window.scrollTo(0, run);
+                if (timeElapsed < duration) requestAnimationFrame(animation);
+            }
+            
+            // 缓动函数
+            function ease(t, b, c, d) {
+                t /= d / 2;
+                if (t < 1) return c / 2 * t * t + b;
+                t--;
+                return -c / 2 * (t * (t - 2) - 1) + b;
+            }
+            
+            requestAnimationFrame(animation);
+        }
+
+        // 初始化平滑滚动
+        function initSmoothScroll() {
+            // 了解核心技术按钮
+            const learnCoreTechBtn = document.getElementById('learn-core-tech');
+            const coreTechSection = document.getElementById('core-technology');
+            
+            if (learnCoreTechBtn && coreTechSection) {
+                learnCoreTechBtn.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    smoothScrollTo(coreTechSection);
+                });
+            }
+            
+            // 查看产品系列按钮
+            const viewProductsBtn = document.getElementById('view-products');
+            const productsSection = document.getElementById('products');
+            
+            if (viewProductsBtn && productsSection) {
+                viewProductsBtn.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    smoothScrollTo(productsSection);
+                });
+            }
+        }
+
+        // 初始化平滑滚动
+        window.addEventListener('DOMContentLoaded', initSmoothScroll);
+    </script>
+</body>
+</html>

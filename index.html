@@ -1,0 +1,603 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ECG波形数据管理系统</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        /* 自定义颜色变量 */
+        :root {
+            --primary-color: #0d9488; /* Teal 600 - 医疗级蓝绿色 */
+            --secondary-color: #0f766e; /* Teal 700 - 深色变体 */
+            --accent-color: #6366f1; /* Indigo 500 - 强调色 */
+            --accent-hover: #4f46e5; /* Indigo 600 - 强调色hover */
+            --bg-color: #fafaf9; /* Stone 50 - 更温暖的灰白 */
+            --text-color: #292524; /* Stone 800 - 更柔和的黑 */
+            --text-secondary: #78716c; /* Stone 500 - 次要文本 */
+            --error-color: #dc2626; /* 深沉的红 */
+            --success-color: #059669; /* 降低饱和度的成功色 */
+            --warning-color: #d97706; /* 琥珀色，减少刺眼感 */
+            --border-color: #e7e5e4; /* Stone 200 - 边框 */
+            --border-light: #f5f5f4; /* Stone 100 - 极淡边框 */
+        }
+        
+        /* 全局样式 */
+        body {
+            font-family: 'Inter', 'SF Pro Display', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', 'PingFang SC', 'Microsoft YaHei', 'Noto Sans SC', Arial, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            line-height: 1.75;
+        }
+        
+        /* 加载页面 */
+        .loader {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: var(--bg-color);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 9999;
+            transition: opacity 0.5s ease, visibility 0.5s ease;
+        }
+        .loader.hidden {
+            opacity: 0;
+            visibility: hidden;
+        }
+        .loader-content {
+            text-align: center;
+        }
+        .spinner {
+            width: 40px;
+            height: 40px;
+            border: 3px solid #e7e5e4;
+            border-top: 3px solid var(--primary-color);
+            border-radius: 50%;
+            animation: spin 1s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+            margin: 0 auto 20px;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        /* 自定义按钮样式 */
+        .btn-primary {
+            background-color: var(--primary-color);
+            background-image: linear-gradient(to bottom, rgba(255,255,255,0.08), transparent);
+            color: white;
+            border-radius: 0.375rem;
+            transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .btn-primary:hover {
+            background-color: var(--secondary-color);
+            transform: translateY(-2px);
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.05), 0 4px 6px -2px rgba(0, 0, 0, 0.025);
+        }
+        .btn-primary:active {
+            transform: translateY(0) scale(0.98);
+        }
+        
+        .btn-secondary {
+            border: 1px solid var(--primary-color);
+            background-color: transparent;
+            color: var(--primary-color);
+            border-radius: 0.375rem;
+            transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .btn-secondary:hover {
+            background-color: #f0fdfa;
+            transform: translateY(-2px);
+        }
+        
+        .btn-danger {
+            background-color: #fef2f2;
+            color: var(--error-color);
+            border: 1px solid #fecaca;
+            border-radius: 0.375rem;
+            transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .btn-danger:hover {
+            background-color: #fee2e2;
+            transform: translateY(-2px);
+        }
+        
+        /* 卡片样式 */
+        .card {
+            transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+            border-radius: 0.75rem;
+            overflow: hidden;
+            background-color: #ffffff;
+            border: 1px solid var(--border-light);
+        }
+        .card:hover {
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.05), 0 4px 6px -2px rgba(0, 0, 0, 0.025);
+            transform: translateY(-4px);
+            border-color: var(--border-color);
+        }
+        
+        /* 按钮动画 */
+        button {
+            transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+            font-weight: 500;
+        }
+        button:hover {
+            transform: translateY(-2px);
+        }
+        button:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+        
+        /* 密码切换按钮禁用hover特效 */
+        .password-toggle-btn {
+            transition: none;
+            height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .password-toggle-btn:hover {
+            transform: none;
+        }
+        .password-toggle-btn svg {
+            display: block;
+            margin: 0;
+        }
+        
+        /* 输入框动画 */
+        input, textarea {
+            transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+            font-size: 1rem;
+            border: 1px solid #d6d3d1;
+            border-radius: 0.5rem;
+            background-color: var(--bg-color);
+        }
+        input:focus, textarea:focus {
+            border-color: var(--primary-color);
+            background-color: #ffffff;
+            box-shadow: inset 0 2px 4px rgba(0,0,0,0.03), 0 0 0 3px rgba(13, 148, 136, 0.15);
+        }
+        
+        /* 导航链接动画 */
+        nav a {
+            transition: all 0.25s cubic-bezier(0.4, 0, 0, 1);
+            font-weight: 500;
+        }
+        nav a:hover {
+            transform: translateY(-1px);
+        }
+        
+        /* 面包屑导航 */
+        .breadcrumb {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            margin-bottom: 1.5rem;
+            font-size: 0.875rem;
+        }
+        .breadcrumb-item {
+            color: #a8a29e;
+        }
+        .breadcrumb-item.active {
+            color: #44403c;
+            font-weight: 500;
+        }
+        .breadcrumb-separator {
+            color: #a8a29e;
+            content: '>';
+        }
+        
+        /* 消息提示 */
+        .toast {
+            position: fixed;
+            top: 1.5rem;
+            right: 1.5rem;
+            padding: 1rem 1.5rem;
+            border-radius: 0.5rem;
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.05);
+            z-index: 10000;
+            animation: slideInRight 0.3s ease, fadeOut 0.3s ease 3s forwards;
+            background-color: rgba(255,255,255,0.95);
+            backdrop-filter: blur(10px);
+            border-left: 4px solid transparent;
+        }
+        .toast-success {
+            border-left-color: var(--success-color);
+            color: var(--text-color);
+        }
+        .toast-error {
+            border-left-color: var(--error-color);
+            color: var(--text-color);
+        }
+        .toast-warning {
+            border-left-color: var(--warning-color);
+            color: var(--text-color);
+        }
+        
+        @keyframes slideInRight {
+            from {
+                transform: translateX(100%);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+        
+        @keyframes fadeOut {
+            from {
+                opacity: 1;
+            }
+            to {
+                opacity: 0;
+                transform: translateX(100%);
+            }
+        }
+        
+        /* 表单验证 */
+        .form-group {
+            position: relative;
+        }
+        .form-error {
+            color: var(--error-color);
+            font-size: 0.75rem;
+            margin-top: 0.25rem;
+        }
+        .input-error {
+            border-color: var(--error-color) !important;
+        }
+        .input-error:focus {
+            box-shadow: 0 0 0 3px rgba(220, 38, 38, 0.1) !important;
+        }
+        
+        /* 响应式导航 */
+        /* 默认显示桌面导航，隐藏移动端菜单按钮 */
+        .mobile-menu-btn {
+            display: none;
+            transition: all 0.25s ease;
+        }
+        
+        /* 汉堡图标激活状态 */
+        .mobile-menu-btn.active {
+            border: 2px solid white;
+            border-radius: 4px;
+        }
+        
+        /* 桌面导航默认显示 */
+        #nav-links {
+            display: flex;
+        }
+        
+        /* 登录后导航默认隐藏，由JavaScript控制显示 */
+        #user-info {
+            display: none;
+        }
+        
+        /* 移动端导航菜单默认隐藏 */
+        #mobile-nav-links,
+        #mobile-user-info {
+            display: none;
+        }
+        
+        /* 只有点击汉堡按钮后才显示 */
+        #mobile-nav-links.active,
+        #mobile-user-info.active {
+            display: block !important;
+            animation: slideDown 0.3s ease;
+        }
+        
+        /* 小屏幕下的响应式调整 */
+        @media (max-width: 768px) {
+            /* 隐藏桌面导航 */
+            #nav-links,
+            #user-info {
+                display: none !important;
+            }
+            
+            /* 显示移动端菜单按钮 */
+            .mobile-menu-btn {
+                display: block;
+            }
+        }
+        
+        @keyframes slideDown {
+            from { opacity: 0; transform: translateY(-10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        /* 数据项卡片 */
+        .data-item {
+            transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+            border: 1px solid var(--border-light);
+            border-radius: 0.5rem;
+            padding: 1.5rem;
+            margin-bottom: 1rem;
+            border-left: 3px solid var(--primary-color);
+        }
+        .data-item:hover {
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05), 0 1px 2px rgba(0, 0, 0, 0.03);
+            transform: translateY(-2px);
+            border-left-width: 4px;
+        }
+        
+        /* 按钮组 */
+        .btn-group {
+            display: flex;
+            gap: 0.5rem;
+            flex-wrap: wrap;
+        }
+        
+        /* 加载状态 */
+        .loading-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: rgba(255, 255, 255, 0.8);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            border-radius: 0.75rem;
+            z-index: 10;
+        }
+        
+        /* 动画效果 */
+        .fade-in {
+            animation: fadeIn 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        /* 导航栏样式 */
+        nav {
+            background: linear-gradient(135deg, #0f766e 0%, #0d9488 50%, #14b8a6 100%);
+            min-height: 4rem;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+        }
+        
+        /* 导航链接按钮 */
+        .nav-links a, .nav-links button {
+            background-color: transparent;
+            backdrop-filter: blur(8px);
+            transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        
+        .nav-links a:hover, .nav-links button:hover {
+            background-color: rgba(255,255,255,0.15);
+            transform: translateY(-1px);
+        }
+        
+        /* 左侧标题容器 */
+        nav .flex-1 {
+            min-width: 0;
+        }
+        
+        nav h1 {
+            white-space: normal;
+            line-height: 1.2;
+        }
+        
+        /* 响应式细节 */
+        @media (max-width: 768px) {
+            nav {
+                min-height: 5rem;
+                padding: 0.5rem;
+            }
+            
+            nav h1 {
+                font-size: 1.5rem;
+            }
+            
+            .card {
+                padding: 1rem;
+            }
+            
+            button {
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+<body class="bg-gray-50 min-h-screen flex flex-col">
+    <!-- 加载页面 -->
+    <div class="loader" id="loader">
+        <div class="loader-content">
+            <div class="spinner"></div>
+            <h2 class="text-xl font-bold text-green-600">加载中...</h2>
+        </div>
+    </div>
+    
+    <!-- 导航栏 -->
+    <nav class="bg-green-500 text-white p-4 sticky top-0 z-50">
+        <div class="container mx-auto flex justify-between items-center">
+            <div class="flex items-center">
+                <img src="/ecg-show/assets/images/logo.png" alt="卵电灵踪" class="w-10 h-10 mr-3">
+                <h1 class="text-2xl font-bold">ECG波形数据管理系统</h1>
+            </div>
+            
+            <div class="flex items-center">
+                <!-- 桌面导航 -->
+                <div id="nav-links" class="nav-links flex items-center md:flex">
+                    <a href="/ecg-show/index.html" class="mr-4 px-4 py-2 bg-green-600 rounded hover:bg-green-700 transition-all duration-300">数据管理</a>
+                    <a href="/ecg-show/team.html" class="mr-4 px-4 py-2 bg-green-600 rounded hover:bg-green-700 transition-all duration-300">项目介绍</a>
+                    <button id="login-btn" class="mr-4 px-4 py-2 bg-green-600 rounded hover:bg-green-700 transition-all duration-300">登录</button>
+                    <button id="register-btn" class="px-4 py-2 bg-blue-500 rounded hover:bg-blue-600 transition-all duration-300">注册</button>
+                </div>
+                
+                <!-- 登录后导航 -->
+                <div id="user-info" class="nav-links flex items-center md:flex">
+                    <a href="/ecg-show/index.html" class="mr-4 px-4 py-2 bg-green-600 rounded hover:bg-green-700 transition-all duration-300">数据管理</a>
+                    <a href="/ecg-show/team.html" class="mr-4 px-4 py-2 bg-green-600 rounded hover:bg-green-700 transition-all duration-300">项目介绍</a>
+                    <span id="username" class="mr-4 font-medium"></span>
+                    <button id="logout-btn" class="px-4 py-2 bg-red-500 rounded hover:bg-red-600 transition-all duration-300">退出</button>
+                </div>
+                
+                <!-- 移动端菜单按钮 -->
+                <button class="mobile-menu-btn text-white focus:outline-none p-2" style="cursor: pointer;">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
+                    </svg>
+                </button>
+            </div>
+        </div>
+        
+        <!-- 移动端导航菜单 -->
+        <div class="md:hidden">
+            <!-- 移动端导航链接 -->
+            <div id="mobile-nav-links" class="nav-links hidden">
+                <a href="/ecg-show/index.html" class="block px-4 py-2 hover:bg-green-700 transition-all duration-300 text-center">数据管理</a>
+                <a href="/ecg-show/team.html" class="block px-4 py-2 hover:bg-green-700 transition-all duration-300 text-center">项目介绍</a>
+                <button id="mobile-login-btn" class="block w-full px-4 py-2 hover:bg-green-700 transition-all duration-300 text-center">登录</button>
+                <button id="mobile-register-btn" class="block w-full px-4 py-2 hover:bg-blue-600 transition-all duration-300 text-center">注册</button>
+            </div>
+            
+            <!-- 移动端登录后导航 -->
+            <div id="mobile-user-info" class="nav-links hidden">
+                <a href="/ecg-show/index.html" class="block px-4 py-2 hover:bg-green-700 transition-all duration-300 text-center">数据管理</a>
+                <a href="/ecg-show/team.html" class="block px-4 py-2 hover:bg-green-700 transition-all duration-300 text-center">项目介绍</a>
+                <span id="mobile-username" class="block px-4 py-2 font-medium text-center"></span>
+                <button id="mobile-logout-btn" class="block w-full px-4 py-2 hover:bg-red-600 transition-all duration-300 text-center">退出</button>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container mx-auto flex-grow p-4">
+        <!-- 面包屑导航 -->
+        <div class="breadcrumb">
+            <a href="/ecg-show/index.html" class="breadcrumb-item hover:text-green-600">首页</a>
+            <span class="breadcrumb-separator">/</span>
+            <span class="breadcrumb-item active" id="current-page">登录</span>
+        </div>
+        
+        <!-- 表单容器 -->
+        <div id="auth-container" class="max-w-md mx-auto bg-white p-8 rounded-lg shadow-lg mt-8 card fade-in">
+            <!-- 登录表单 -->
+            <div id="login-form">
+                <h2 class="text-2xl font-bold mb-6 text-center text-green-600">用户登录</h2>
+                <div class="form-group mb-6">
+                    <label class="block text-gray-700 mb-2 font-medium">用户名</label>
+                    <input type="text" id="login-username" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500">
+                    <div class="form-error" id="login-username-error"></div>
+                </div>
+                <div class="form-group mb-6">
+                    <label class="block text-gray-700 mb-2 font-medium">密码</label>
+                    <div class="relative">
+                        <input type="password" id="login-password" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 pr-12">
+                        <button type="button" id="toggle-login-password" class="absolute right-0 top-0 h-full px-3 text-gray-500 focus:outline-none flex items-center justify-center password-toggle-btn">
+                            <svg fill="currentColor" aria-hidden="true" width="16" height="17" viewBox="0 0 16 17" xmlns="http://www.w3.org/2000/svg">
+                                <path d="M2.61997 11.7667L3.33497 11.0567C2.55208 10.3538 1.93696 9.48406 1.53497 8.51172C2.54997 5.97672 5.34997 4.01172 7.99997 4.01172C8.68192 4.02072 9.35769 4.14236 9.99997 4.37172L10.775 3.59172C9.8963 3.22038 8.95382 3.02339 7.99997 3.01172C6.37023 3.07301 4.79416 3.6105 3.46657 4.55776C2.13898 5.50503 1.11805 6.82054 0.52997 8.34172C0.490254 8.45157 0.490254 8.57187 0.52997 8.68172C0.974094 9.86023 1.69018 10.9172 2.61997 11.7667Z"></path>
+                                <path d="M5.99997 8.37672C6.03474 7.89758 6.24082 7.44696 6.58051 7.10726C6.92021 6.76756 7.37083 6.56149 7.84997 6.52672L8.75497 5.61672C8.24785 5.48319 7.71459 5.48493 7.20835 5.62175C6.70211 5.75857 6.24058 6.02571 5.86977 6.39652C5.49896 6.76733 5.23182 7.22886 5.095 7.7351C4.95818 8.24134 4.95644 8.7746 5.08997 9.28172L5.99997 8.37672Z"></path>
+                                <path d="M15.47 8.34172C14.8966 6.84832 13.899 5.55523 12.6 4.62172L15 2.21672L14.295 1.51172L0.99997 14.8067L1.70497 15.5117L4.25497 12.9617C5.39191 13.6287 6.68199 13.9904 7.99997 14.0117C9.62971 13.9504 11.2058 13.4129 12.5334 12.4657C13.861 11.5184 14.8819 10.2029 15.47 8.68172C15.5097 8.57187 15.5097 8.45157 15.47 8.34172ZM9.99997 8.51172C9.99786 8.86177 9.90392 9.20514 9.72752 9.5075C9.55113 9.80987 9.29846 10.0606 8.99477 10.2347C8.69109 10.4089 8.34702 10.5002 7.99697 10.4997C7.64691 10.4992 7.30312 10.4068 6.99997 10.2317L9.71997 7.51172C9.89972 7.81458 9.99631 8.15955 9.99997 8.51172ZM7.99997 13.0117C6.951 12.9934 5.92192 12.7224 4.99997 12.2217L6.26997 10.9517C6.84764 11.3525 7.54774 11.5377 8.24804 11.475C8.94833 11.4122 9.60434 11.1054 10.1015 10.6083C10.5987 10.1111 10.9054 9.45508 10.9682 8.75478C11.031 8.05449 10.8458 7.35439 10.445 6.77672L11.88 5.34172C13.0273 6.12921 13.9244 7.22943 14.465 8.51172C13.45 11.0467 10.65 13.0117 7.99997 13.0117Z"></path>
+                            </svg>
+                        </button>
+                    </div>
+                    <div class="form-error" id="login-password-error"></div>
+                </div>
+                <button id="submit-login" class="w-full bg-green-500 text-white py-3 rounded-lg hover:bg-green-600 transition-all duration-300">登录</button>
+                <p class="mt-6 text-center">
+                    还没有账号？ <button id="switch-to-register" class="text-blue-600 hover:underline font-medium">立即注册</button>
+                </p>
+            </div>
+
+            <!-- 注册表单 -->
+            <div id="register-form" class="hidden">
+                <h2 class="text-2xl font-bold mb-6 text-center text-green-600">用户注册</h2>
+                <div class="form-group mb-6">
+                    <label class="block text-gray-700 mb-2 font-medium">用户名</label>
+                    <input type="text" id="register-username" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500">
+                    <div class="form-error" id="register-username-error"></div>
+                </div>
+                <div class="form-group mb-6">
+                    <label class="block text-gray-700 mb-2 font-medium">密码</label>
+                    <div class="relative">
+                        <input type="password" id="register-password" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 pr-12">
+                        <button type="button" id="toggle-register-password" class="absolute right-0 top-0 h-full px-3 text-gray-500 focus:outline-none flex items-center justify-center password-toggle-btn">
+                            <svg fill="currentColor" aria-hidden="true" width="16" height="17" viewBox="0 0 16 17" xmlns="http://www.w3.org/2000/svg">
+                                <path d="M2.61997 11.7667L3.33497 11.0567C2.55208 10.3538 1.93696 9.48406 1.53497 8.51172C2.54997 5.97672 5.34997 4.01172 7.99997 4.01172C8.68192 4.02072 9.35769 4.14236 9.99997 4.37172L10.775 3.59172C9.8963 3.22038 8.95382 3.02339 7.99997 3.01172C6.37023 3.07301 4.79416 3.6105 3.46657 4.55776C2.13898 5.50503 1.11805 6.82054 0.52997 8.34172C0.490254 8.45157 0.490254 8.57187 0.52997 8.68172C0.974094 9.86023 1.69018 10.9172 2.61997 11.7667Z"></path>
+                                <path d="M5.99997 8.37672C6.03474 7.89758 6.24082 7.44696 6.58051 7.10726C6.92021 6.76756 7.37083 6.56149 7.84997 6.52672L8.75497 5.61672C8.24785 5.48319 7.71459 5.48493 7.20835 5.62175C6.70211 5.75857 6.24058 6.02571 5.86977 6.39652C5.49896 6.76733 5.23182 7.22886 5.095 7.7351C4.95818 8.24134 4.95644 8.7746 5.08997 9.28172L5.99997 8.37672Z"></path>
+                                <path d="M15.47 8.34172C14.8966 6.84832 13.899 5.55523 12.6 4.62172L15 2.21672L14.295 1.51172L0.99997 14.8067L1.70497 15.5117L4.25497 12.9617C5.39191 13.6287 6.68199 13.9904 7.99997 14.0117C9.62971 13.9504 11.2058 13.4129 12.5334 12.4657C13.861 11.5184 14.8819 10.2029 15.47 8.68172C15.5097 8.57187 15.5097 8.45157 15.47 8.34172ZM9.99997 8.51172C9.99786 8.86177 9.90392 9.20514 9.72752 9.5075C9.55113 9.80987 9.29846 10.0606 8.99477 10.2347C8.69109 10.4089 8.34702 10.5002 7.99697 10.4997C7.64691 10.4992 7.30312 10.4068 6.99997 10.2317L9.71997 7.51172C9.89972 7.81458 9.99631 8.15955 9.99997 8.51172ZM7.99997 13.0117C6.951 12.9934 5.92192 12.7224 4.99997 12.2217L6.26997 10.9517C6.84764 11.3525 7.54774 11.5377 8.24804 11.475C8.94833 11.4122 9.60434 11.1054 10.1015 10.6083C10.5987 10.1111 10.9054 9.45508 10.9682 8.75478C11.031 8.05449 10.8458 7.35439 10.445 6.77672L11.88 5.34172C13.0273 6.12921 13.9244 7.22943 14.465 8.51172C13.45 11.0467 10.65 13.0117 7.99997 13.0117Z"></path>
+                            </svg>
+                        </button>
+                    </div>
+                    <div class="form-error" id="register-password-error"></div>
+                </div>
+                <button id="submit-register" class="w-full bg-blue-500 text-white py-3 rounded-lg hover:bg-blue-600 transition-all duration-300">注册</button>
+                <p class="mt-6 text-center">
+                    已有账号？ <button id="switch-to-login" class="text-green-600 hover:underline font-medium">立即登录</button>
+                </p>
+            </div>
+        </div>
+
+        <!-- 数据管理区域 -->
+        <div id="data-container" class="hidden mt-8">
+            <!-- 数据管理卡片 -->
+            <div class="bg-white p-8 rounded-lg shadow-lg card fade-in">
+                <h2 class="text-2xl font-bold mb-6 text-green-600">数据管理</h2>
+                <div class="form-group mb-6">
+                    <label class="block text-gray-700 mb-2 font-medium">数据名称</label>
+                    <input type="text" id="data-name" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500">
+                    <div class="form-error" id="data-name-error"></div>
+                </div>
+                <div class="form-group mb-6">
+                    <label class="block text-gray-700 mb-2 font-medium">波形数据</label>
+                    <textarea id="wave-data" class="w-full px-4 py-3 border border-gray-300 rounded-lg h-32 focus:outline-none focus:ring-2 focus:ring-green-500"></textarea>
+                    <div class="form-error" id="wave-data-error"></div>
+                    <p class="text-sm text-gray-500 mt-2">支持纯数值格式或时间-电压对格式</p>
+                </div>
+                <div class="form-group mb-6">
+                    <label class="block text-gray-700 mb-2 font-medium">或上传文件</label>
+                    <input type="file" id="wave-file" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500" accept=".txt,.csv,.json">
+                    <p class="text-sm text-gray-500 mt-2">支持 .txt, .csv, .json 格式</p>
+                </div>
+                <button id="save-data" class="px-6 py-3 bg-green-500 text-white rounded-lg hover:bg-green-600 transition-all duration-300">保存数据</button>
+            </div>
+
+            <!-- 数据列表 -->
+            <div class="mt-8">
+                <h2 class="text-2xl font-bold mb-6 text-green-600">已保存数据</h2>
+                <div id="data-list" class="bg-white p-8 rounded-lg shadow-lg">
+                    <!-- 数据项将在这里动态添加 -->
+                </div>
+            </div>
+
+            <!-- 波形显示 -->
+            <div class="mt-8">
+                <h2 class="text-2xl font-bold mb-6 text-green-600">波形显示</h2>
+                <div class="bg-white p-8 rounded-lg shadow-lg card">
+                    <canvas id="wave-chart" height="300"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <footer class="bg-green-700 text-white p-6 mt-8">
+        <div class="container mx-auto text-center">
+            <p>© 2026 ECG波形数据管理系统</p>
+            <p class="text-sm mt-2">中国农业大学</p>
+        </div>
+    </footer>
+
+    <!-- 消息提示容器 -->
+    <div id="toast-container"></div>
+
+    <script type="module" src="/ecg-show/src/main.js"></script>
+</body>
+</html>
