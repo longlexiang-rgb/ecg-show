@@ -1,44 +1,11 @@
 {
-  "version": 2,
-  "routes": [
-    {
-      "src": "/api/auth/register",
-      "dest": "/api/auth/register.js"
-    },
-    {
-      "src": "/api/auth/login",
-      "dest": "/api/auth/login.js"
-    },
-    {
-      "src": "/api/data",
-      "dest": "/api/data/getDataList.js"
-    },
-    {
-      "src": "/api/data/(.*)",
-      "dest": "/api/data/getDataById.js"
-    },
-    {
-      "src": "/api/data",
-      "dest": "/api/data/saveData.js",
-      "methods": ["POST"]
-    },
-    {
-      "src": "/api/data/(.*)",
-      "dest": "/api/data/deleteData.js",
-      "methods": ["DELETE"]
-    },
-    {
-      "src": "/api/data/(.*)",
-      "dest": "/api/data/updateData.js",
-      "methods": ["PUT"]
-    },
-    {
-      "src": "/",
-      "dest": "/index.html"
-    },
-    {
-      "src": "/team",
-      "dest": "/team.html"
-    }
+  "version": 2,
+  "rewrites": [
+    { "source": "/api/auth/register", "destination": "/api/auth/register.js" },
+    { "source": "/api/auth/login", "destination": "/api/auth/login.js" },
+    { "source": "/api/data", "destination": "/api/data/getDataList.js" },
+    { "source": "/api/data/save", "destination": "/api/data/saveData.js" },
+    { "source": "/api/data/(.*)", "destination": "/api/data/getDataById.js" }
   ]
 }
+
