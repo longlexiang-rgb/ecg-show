@@ -1,0 +1,68 @@
+service: ecg-serverless
+
+provider:
+  name: aws
+  runtime: nodejs18.x
+  region: us-east-1
+  environment:
+    MONGODB_URI: ${env:MONGODB_URI}
+    SECRET_KEY: ${env:SECRET_KEY}
+
+functions:
+  # 认证相关函数
+  register:
+    handler: api/auth/register.handler
+    events:
+      - http:
+          path: api/auth/register
+          method: post
+  login:
+    handler: api/auth/login.handler
+    events:
+      - http:
+          path: api/auth/login
+          method: post
+  
+  # 数据管理相关函数
+  getDataList:
+    handler: api/data/getDataList.handler
+    events:
+      - http:
+          path: api/data
+          method: get
+          authorizer: verifyToken
+  getDataById:
+    handler: api/data/getDataById.handler
+    events:
+      - http:
+          path: api/data/{id}
+          method: get
+          authorizer: verifyToken
+  saveData:
+    handler: api/data/saveData.handler
+    events:
+      - http:
+          path: api/data
+          method: post
+          authorizer: verifyToken
+  deleteData:
+    handler: api/data/deleteData.handler
+    events:
+      - http:
+          path: api/data/{id}
+          method: delete
+          authorizer: verifyToken
+  updateData:
+    handler: api/data/updateData.handler
+    events:
+      - http:
+          path: api/data/{id}
+          method: put
+          authorizer: verifyToken
+
+  # 自定义授权器
+  verifyToken:
+    handler: api/auth/verifyToken.handler
+
+plugins:
+  - serverless-offline
