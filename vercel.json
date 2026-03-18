@@ -4,6 +4,18 @@
     {
       "src": "api/**/*.js",
       "use": "@vercel/node"
+    },
+    {
+      "src": "*.html",
+      "use": "@vercel/static"
+    },
+    {
+      "src": "src/**/*.js",
+      "use": "@vercel/static"
+    },
+    {
+      "src": "assets/**/*",
+      "use": "@vercel/static"
     }
   ],
   "routes": [
@@ -37,6 +49,14 @@
       "src": "/api/data/(.*)",
       "dest": "/api/data/updateData.js",
       "methods": ["PUT"]
+    },
+    {
+      "src": "/",
+      "dest": "/index.html"
+    },
+    {
+      "src": "/team",
+      "dest": "/team.html"
     }
   ]
 }
