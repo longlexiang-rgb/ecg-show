@@ -7,6 +7,7 @@
     { "src": "ecg-project-backup/assets/**/*", "use": "@vercel/static" }
   ],
   "routes": [
+
     { "src": "/api/auth/register", "dest": "/api/auth/register.js" },
     { "src": "/api/auth/login", "dest": "/api/auth/login.js" },
     { "src": "/api/data", "dest": "/api/data/getDataList.js", "methods": ["GET"] },
@@ -15,9 +16,10 @@
     { "src": "/api/data/(.*)", "dest": "/api/data/deleteData.js", "methods": ["DELETE"] },
     { "src": "/api/data/(.*)", "dest": "/api/data/updateData.js", "methods": ["PUT"] },
 
+
     { "src": "/index.html", "dest": "/index.html" },
     { "src": "/team.html", "dest": "/team.html" },
-
+    { "src": "/team", "dest": "/team.html" }, 
     { "src": "/src/(.*)", "dest": "/src/$1" },
     { "src": "/assets/(.*)", "dest": "/ecg-project-backup/assets/$1" },
     {
@@ -26,7 +28,6 @@
     },
 
     { "src": "/", "dest": "/index.html" },
-    { "src": "/team", "dest": "/team.html" },
     { "src": "/(.*)", "dest": "/index.html" }
   ]
 }
