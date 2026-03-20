@@ -1,4 +1,4 @@
-// 主应用模块
+
 import { API_BASE_URL, USE_MOCK } from './config.js';
 import { getCurrentUser, setCurrentUser, removeCurrentUser, getToken, setToken, removeToken } from './storage.js';
 import { register, login, getDataList, getDataById, saveData, deleteData, updateData } from './api.js';
