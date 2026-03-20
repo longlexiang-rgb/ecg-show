@@ -19,7 +19,6 @@
     { "src": "/team.html", "dest": "/team.html" },
     { "src": "/team", "dest": "/team.html" },
 
-    // 3. 静态资源（修改这行！去掉ecg-project-backup）
     { "src": "/src/(.*)", "dest": "/src/$1" },
     { "src": "/assets/(.*)", "dest": "/assets/$1" }, 
     {
