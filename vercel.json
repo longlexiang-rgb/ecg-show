@@ -1,88 +1,30 @@
 {
   "version": 2,
+  // 仅识别函数 + 静态资源，无打包逻辑
   "builds": [
+    // 告诉Vercel：auth/data目录下的js是Node函数
     {
       "src": "auth/**/*.js",
-      "use": "@vercel/node"
+      "use": "@vercel/node",
+      "config": { "runtime": "nodejs20.x" } // 指定Node版本，避免兼容问题
     },
     {
       "src": "data/**/*.js",
-      "use": "@vercel/node"
+      "use": "@vercel/node",
+      "config": { "runtime": "nodejs20.x" }
     },
-    {
-      "src": "db.js",
-      "use": "@vercel/node"
-    },
-    {
-      "src": "*.html",
-      "use": "@vercel/static"
-    },
-    {
-      "src": "src/**/*",
-      "use": "@vercel/static"
-    },
-    {
-      "src": "assets/**/*",
-      "use": "@vercel/static"
-    }
+    // 根目录HTML + src目录下所有文件都是静态资源
+    { "src": "*.html", "use": "@vercel/static" },
+    { "src": "src/**/*", "use": "@vercel/static" }
   ],
+  // 路由规则：接口优先，静态页面次之，SPA回退兜底
   "routes": [
-    {
-      "src": "/api/auth/register",
-      "dest": "/auth/register.js"
-    },
-    {
-      "src": "/api/auth/login",
-      "dest": "/auth/login.js"
-    },
-    {
-      "src": "/api/data",
-      "dest": "/data/getDataList.js",
-      "methods": ["GET"]
-    },
-    {
-      "src": "/api/data",
-      "dest": "/data/saveData.js",
-      "methods": ["POST"]
-    },
-    {
-      "src": "/api/data/(.*)",
-      "dest": "/data/getDataById.js",
-      "methods": ["GET"]
-    },
-    {
-      "src": "/api/data/(.*)",
-      "dest": "/data/deleteData.js",
-      "methods": ["DELETE"]
-    },
-    {
-      "src": "/api/data/(.*)",
-      "dest": "/data/updateData.js",
-      "methods": ["PUT"]
-    },
-    {
-      "src": "/",
-      "dest": "/index.html"
-    },
-    {
-      "src": "/team",
-      "dest": "/team.html"
-    },
-    {
-      "src": "/team.html",
-      "dest": "/team.html"
-    },
-    {
-      "src": "/src/(.*)",
-      "dest": "/src/$1"
-    },
-    {
-      "src": "/assets/(.*)",
-      "dest": "/assets/$1"
-    },
-    {
-      "src": "/(.*)",
-      "dest": "/index.html"
-    }
+    // 1. 优先匹配后端函数接口，避免被静态路由覆盖
+    { "src": "/auth/(.*)", "dest": "/auth/$1" },
+    { "src": "/data/(.*)", "dest": "/data/$1" },
+    // 2. 独立静态页面（比如team.html直接访问不404）
+    { "src": "/team", "dest": "/team.html" },
+    // 3. 所有非接口/非独立页面的请求，都指向index.html（解决前端路由404）
+    { "src": "/(.*)", "dest": "/index.html" }
   ]
 }
