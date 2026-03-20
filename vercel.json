@@ -9,7 +9,6 @@
   "routes": [
     { "src": "/api/auth/register", "dest": "/api/auth/register.js" },
     { "src": "/api/auth/login", "dest": "/api/auth/login.js" },
-
     { "src": "/api/data", "dest": "/api/data/getDataList.js", "methods": ["GET"] },
     { "src": "/api/data", "dest": "/api/data/saveData.js", "methods": ["POST"] },
     { "src": "/api/data/(.*)", "dest": "/api/data/getDataById.js", "methods": ["GET"] },
@@ -18,8 +17,6 @@
 
     { "src": "/src/(.*)", "dest": "/src/$1" },
     { "src": "/assets/(.*)", "dest": "/ecg-project-backup/assets/$1" },
-
-
     {
       "src": "/(.*\\.(js|css|png|jpg|jpeg|gif|svg|ico|webp))",
       "dest": "/$1"
