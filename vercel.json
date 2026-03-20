@@ -4,7 +4,7 @@
     { "src": "api/**/*.js", "use": "@vercel/node" },
     { "src": "*.html", "use": "@vercel/static" },
     { "src": "src/**/*", "use": "@vercel/static" },
-    { "src": "ecg-project-backup/assets/**/*", "use": "@vercel/static" }
+    { "src": "ecg-project-backup/assets/**/*", "use": "@vercel/static" } 
   ],
   "routes": [
     { "src": "/api/auth/register", "dest": "/api/auth/register.js" },
@@ -15,8 +15,10 @@
     { "src": "/api/data/(.*)", "dest": "/api/data/deleteData.js", "methods": ["DELETE"] },
     { "src": "/api/data/(.*)", "dest": "/api/data/updateData.js", "methods": ["PUT"] },
 
-    { "src": "/src/(.*)", "dest": "/src/$1" },
+    { "src": "/assets/images/(.*)", "dest": "/ecg-project-backup/assets/images/$1" },
     { "src": "/assets/(.*)", "dest": "/ecg-project-backup/assets/$1" },
+
+    { "src": "/src/(.*)", "dest": "/src/$1" },
     {
       "src": "/(.*\\.(js|css|png|jpg|jpeg|gif|svg|ico|webp))",
       "dest": "/$1"
@@ -24,7 +26,6 @@
 
     { "src": "/team", "dest": "/team.html" },
     { "src": "/", "dest": "/index.html" },
-
     { "src": "/(.*)", "dest": "/index.html" }
   ]
 }
