@@ -1,17 +1,21 @@
 {
   "version": 2,
   "builds": [
-    { "src": "auth/**/*.js", "use": "@vercel/node" },
+    { "src": "api/auth/**/*.js", "use": "@vercel/node" }, 
     { "src": "data/**/*.js", "use": "@vercel/node" },
     { "src": "*.html", "use": "@vercel/static" },
     { "src": "src/**/*", "use": "@vercel/static" },
-    { "src": "assets/**/*", "use": "@vercel/static" } 
+    { "src": "assets/**/*", "use": "@vercel/static" }
   ],
   "routes": [
-    { "src": "/auth/(.*)", "dest": "/auth/$1" },
+    { 
+      "src": "/api/auth/(.*)", 
+      "dest": "/api/auth/$1",
+      "methods": ["GET", "POST", "OPTIONS"] 
+    },
     { "src": "/data/(.*)", "dest": "/data/$1" },
     { "src": "/src/(.*)", "dest": "/src/$1" },
-    { "src": "/assets/(.*)", "dest": "/assets/$1" }, 
+    { "src": "/assets/(.*)", "dest": "/assets/$1" },
     { "src": "/(.*\\.js|.*\\.css|.*\\.png|.*\\.jpg)", "dest": "/$1" },
     { "src": "/team", "dest": "/team.html" },
     { "src": "/(.*)", "dest": "/index.html" }
