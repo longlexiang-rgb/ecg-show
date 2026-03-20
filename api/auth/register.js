@@ -2,6 +2,16 @@ const bcrypt = require('bcrypt');
 const { connectDB, User } = require('../db');
 
 module.exports = async (req, res) => {
+      // 添加 CORS 头部
+    res.setHeader('Access-Control-Allow-Origin', '*');
+    res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
+    res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+
+    // 处理 OPTIONS 请求
+    if (req.method === 'OPTIONS') {
+        return res.status(200).end();
+    }
+
     try {
         // 解析请求体
         const { username, password } = req.body;
