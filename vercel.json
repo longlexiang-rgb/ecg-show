@@ -1,39 +1,25 @@
 {
   "version": 2,
   "builds": [
-    {
-      "src": "auth/**/*.js",
-      "use": "@vercel/node"
-    },
-    {
-      "src": "data/**/*.js",
-      "use": "@vercel/node"
-    },
-    {
-      "src": "*.html",
-      "use": "@vercel/static"
-    },
-    {
-      "src": "src/**/*",
-      "use": "@vercel/static"
-    }
+    { "src": "auth/**/*.js", "use": "@vercel/node" },
+    { "src": "data/**/*.js", "use": "@vercel/node" },
+    { "src": "*.html", "use": "@vercel/static" },
+    { "src": "src/**/*", "use": "@vercel/static" } // 明确 src 目录为静态资源
   ],
   "routes": [
-    {
-      "src": "/auth/(.*)",
-      "dest": "/auth/$1"
-    },
-    {
-      "src": "/data/(.*)",
-      "dest": "/data/$1"
-    },
-    {
-      "src": "/team",
-      "dest": "/team.html"
-    },
-    {
-      "src": "/(.*)",
-      "dest": "/index.html"
-    }
+    // 1. 优先匹配后端接口
+    { "src": "/auth/(.*)", "dest": "/auth/$1" },
+    { "src": "/data/(.*)", "dest": "/data/$1" },
+
+    // 2. 其次匹配所有静态资源（关键：避免JS/CSS被重定向）
+    { "src": "/src/(.*)", "dest": "/src/$1" }, // 匹配 src 下的所有文件（包括 main.js）
+    { "src": "/assets/(.*)", "dest": "/assets/$1" }, // 如有其他静态目录，加在这里
+    { "src": "/(.*\\.js|.*\\.css|.*\\.png|.*\\.jpg)", "dest": "/$1" }, // 兜底匹配所有JS/CSS/图片
+
+    // 3. 匹配独立静态页面
+    { "src": "/team", "dest": "/team.html" },
+
+    // 4. 最后做SPA回退（仅匹配非资源/非接口的页面请求）
+    { "src": "/(.*)", "dest": "/index.html" }
   ]
 }
