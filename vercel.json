@@ -4,13 +4,14 @@
     { "src": "auth/**/*.js", "use": "@vercel/node" },
     { "src": "data/**/*.js", "use": "@vercel/node" },
     { "src": "*.html", "use": "@vercel/static" },
-    { "src": "src/**/*", "use": "@vercel/static" }
+    { "src": "src/**/*", "use": "@vercel/static" },
+    { "src": "assets/**/*", "use": "@vercel/static" } 
   ],
   "routes": [
     { "src": "/auth/(.*)", "dest": "/auth/$1" },
     { "src": "/data/(.*)", "dest": "/data/$1" },
     { "src": "/src/(.*)", "dest": "/src/$1" },
-    { "src": "/assets/(.*)", "dest": "/assets/$1" },
+    { "src": "/assets/(.*)", "dest": "/assets/$1" }, 
     { "src": "/(.*\\.js|.*\\.css|.*\\.png|.*\\.jpg)", "dest": "/$1" },
     { "src": "/team", "dest": "/team.html" },
     { "src": "/(.*)", "dest": "/index.html" }
