@@ -3,22 +3,21 @@
   "version": "1.0.0",
   "description": "ECG波形数据管理系统 - Serverless版本",
   "main": "index.js",
-  "type": "module",          // 新增：启用 ESModule，适配所有接口的 import/export
+  "type": "module",         
   "scripts": {
-    "dev": "vercel dev",     // 修改：替换 serverless offline 为 Vercel 本地开发命令
-    "deploy": "vercel deploy --prod" // 修改：替换 serverless deploy 为 Vercel 部署命令
+    "dev": "vercel dev",     
+    "deploy": "vercel deploy --prod" 
   },
   "dependencies": {
-    "bcryptjs": "^2.4.3",    // 修改：替换 bcrypt 为 bcryptjs（解决 Vercel 编译兼容问题）
+    "bcryptjs": "^2.4.3",   
     "dotenv": "^17.3.1",
     "jsonwebtoken": "^9.0.2",
     "mongoose": "^8.0.0",
-    "cors": "^2.8.5",        // 保留：兼容原有跨域配置（可选，已在接口中配置 CORS）
-    "express": "^4.18.2"     // 保留：兼容原有代码（Vercel 无需 express，可删除）
+    "cors": "^2.8.5",      
+    "express": "^4.18.2"   
   },
   "devDependencies": {
-    "vercel": "^33.5.3"      // 新增：Vercel 命令行工具，支持本地开发/部署
-    // 删除：serverless-offline（Vercel 无需该依赖）
+    "vercel": "^33.5.3"   
   },
   "keywords": [
     "ecg",
