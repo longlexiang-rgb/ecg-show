@@ -1,10 +1,58 @@
 {
   "version": 2,
   "builds": [
-    { "src": "api/**/*.js", "use": "@vercel/node" },
-    { "src": "ecg-show/**/*", "use": "@vercel/static" }
+    {
+      "src": "api/**/*.js",
+      "use": "@vercel/node"
+    },
+    {
+      "src": "auth/**/*.js",
+      "use": "@vercel/node"
+    },
+    {
+      "src": "data/**/*.js",
+      "use": "@vercel/node"
+    },
+    {
+      "src": "*.html",
+      "use": "@vercel/static"
+    },
+    {
+      "src": "assets/**/*",
+      "use": "@vercel/static"
+    },
+    {
+      "src": "src/**/*",
+      "use": "@vercel/static"
+    }
   ],
-  "rewrites": [
-    { "source": "/api/data/:id", "destination": "/api/data/getDataById.js" }
+  "routes": [
+    // 1. 优先匹配后端接口，避免被前端路由覆盖
+    {
+      "src": "/api/(.*)",
+      "dest": "/api/$1"
+    },
+    {
+      "src": "/auth/(.*)",
+      "dest": "/auth/$1"
+    },
+    {
+      "src": "/data/(.*)",
+      "dest": "/data/$1"
+    },
+    // 2. 处理静态资源（css/js/图片等）
+    {
+      "src": "/assets/(.*)",
+      "dest": "/assets/$1"
+    },
+    {
+      "src": "/src/(.*)",
+      "dest": "/src/$1"
+    },
+    // 3. 核心：SPA 回退路由，所有前端页面请求重定向到 index.html
+    {
+      "src": "/(.*)",
+      "dest": "/index.html"
+    }
   ]
 }
