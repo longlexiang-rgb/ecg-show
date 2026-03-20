@@ -2,13 +2,9 @@
   "version": 2,
   "builds": [
     { "src": "api/**/*.js", "use": "@vercel/node" },
-    { "src": "**/*", "use": "@vercel/static" }
+    { "src": "ecg-show/**/*", "use": "@vercel/static" }
   ],
   "rewrites": [
-    { "source": "/api/auth/register", "destination": "/api/auth/register.js" },
-    { "source": "/api/auth/login", "destination": "/api/auth/login.js" },
-    { "source": "/api/data/getList", "destination": "/api/data/getList.js" },
-    { "source": "/api/data/save", "destination": "/api/data/save.js" },
-    { "source": "/api/data/(.*)", "destination": "/api/data/getDataById.js" }
+    { "source": "/api/data/:id", "destination": "/api/data/getDataById.js" }
   ]
 }
