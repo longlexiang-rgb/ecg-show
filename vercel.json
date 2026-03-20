@@ -4,10 +4,9 @@
     { "src": "api/**/*.js", "use": "@vercel/node" },
     { "src": "*.html", "use": "@vercel/static" },
     { "src": "src/**/*", "use": "@vercel/static" },
-    { "src": "ecg-project-backup/assets/**/*", "use": "@vercel/static" }
+    { "src": "assets/**/*", "use": "@vercel/static" } 
   ],
   "routes": [
-
     { "src": "/api/auth/register", "dest": "/api/auth/register.js" },
     { "src": "/api/auth/login", "dest": "/api/auth/login.js" },
     { "src": "/api/data", "dest": "/api/data/getDataList.js", "methods": ["GET"] },
@@ -16,16 +15,18 @@
     { "src": "/api/data/(.*)", "dest": "/api/data/deleteData.js", "methods": ["DELETE"] },
     { "src": "/api/data/(.*)", "dest": "/api/data/updateData.js", "methods": ["PUT"] },
 
-
     { "src": "/index.html", "dest": "/index.html" },
     { "src": "/team.html", "dest": "/team.html" },
-    { "src": "/team", "dest": "/team.html" }, 
+    { "src": "/team", "dest": "/team.html" },
+
+    // 3. 静态资源（修改这行！去掉ecg-project-backup）
     { "src": "/src/(.*)", "dest": "/src/$1" },
-    { "src": "/assets/(.*)", "dest": "/ecg-project-backup/assets/$1" },
+    { "src": "/assets/(.*)", "dest": "/assets/$1" }, 
     {
       "src": "/(.*\\.(js|css|png|jpg|jpeg|gif|svg|ico|webp))",
       "dest": "/$1"
     },
+
 
     { "src": "/", "dest": "/index.html" },
     { "src": "/(.*)", "dest": "/index.html" }
