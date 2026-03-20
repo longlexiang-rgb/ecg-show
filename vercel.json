@@ -2,10 +2,6 @@
   "version": 2,
   "builds": [
     {
-      "src": "api/**/*.js",
-      "use": "@vercel/node"
-    },
-    {
       "src": "auth/**/*.js",
       "use": "@vercel/node"
     },
@@ -14,42 +10,76 @@
       "use": "@vercel/node"
     },
     {
-      "src": "*.html",
-      "use": "@vercel/static"
+      "src": "db.js",
+      "use": "@vercel/node"
     },
     {
-      "src": "assets/**/*",
+      "src": "*.html",
       "use": "@vercel/static"
     },
     {
       "src": "src/**/*",
       "use": "@vercel/static"
+    },
+    {
+      "src": "assets/**/*",
+      "use": "@vercel/static"
     }
   ],
   "routes": [
-    // 1. 优先匹配后端接口，避免被前端路由覆盖
     {
-      "src": "/api/(.*)",
-      "dest": "/api/$1"
+      "src": "/api/auth/register",
+      "dest": "/auth/register.js"
     },
     {
-      "src": "/auth/(.*)",
-      "dest": "/auth/$1"
+      "src": "/api/auth/login",
+      "dest": "/auth/login.js"
     },
     {
-      "src": "/data/(.*)",
-      "dest": "/data/$1"
+      "src": "/api/data",
+      "dest": "/data/getDataList.js",
+      "methods": ["GET"]
     },
-    // 2. 处理静态资源（css/js/图片等）
     {
-      "src": "/assets/(.*)",
-      "dest": "/assets/$1"
+      "src": "/api/data",
+      "dest": "/data/saveData.js",
+      "methods": ["POST"]
+    },
+    {
+      "src": "/api/data/(.*)",
+      "dest": "/data/getDataById.js",
+      "methods": ["GET"]
+    },
+    {
+      "src": "/api/data/(.*)",
+      "dest": "/data/deleteData.js",
+      "methods": ["DELETE"]
+    },
+    {
+      "src": "/api/data/(.*)",
+      "dest": "/data/updateData.js",
+      "methods": ["PUT"]
+    },
+    {
+      "src": "/",
+      "dest": "/index.html"
+    },
+    {
+      "src": "/team",
+      "dest": "/team.html"
+    },
+    {
+      "src": "/team.html",
+      "dest": "/team.html"
     },
     {
       "src": "/src/(.*)",
       "dest": "/src/$1"
     },
-    // 3. 核心：SPA 回退路由，所有前端页面请求重定向到 index.html
+    {
+      "src": "/assets/(.*)",
+      "dest": "/assets/$1"
+    },
     {
       "src": "/(.*)",
       "dest": "/index.html"
