@@ -4,29 +4,28 @@
     { "src": "api/**/*.js", "use": "@vercel/node" },
     { "src": "*.html", "use": "@vercel/static" },
     { "src": "src/**/*", "use": "@vercel/static" },
-    { "src": "assets/**/*", "use": "@vercel/static" } 
+    { "src": "assets/**/*", "use": "@vercel/static" }
   ],
   "routes": [
-    { "src": "/api/auth/register", "dest": "/api/auth/register.js" },
-    { "src": "/api/auth/login", "dest": "/api/auth/login.js" },
-    { "src": "/api/data", "dest": "/api/data/getDataList.js", "methods": ["GET"] },
+    { "src": "/api/auth/register", "dest": "/api/auth/register.js", "methods": ["POST"] },
+    { "src": "/api/auth/login", "dest": "/api/auth/login.js", "methods": ["POST"] },
+
+    { "src": "/api/data/(.*)", "dest": "/api/data/deleteData.js?id=$1", "methods": ["DELETE"] },
+    { "src": "/api/data/(.*)", "dest": "/api/data/updateData.js?id=$1", "methods": ["PUT"] },
+    { "src": "/api/data/(.*)", "dest": "/api/data/getDataById.js?id=$1", "methods": ["GET"] },
+
     { "src": "/api/data", "dest": "/api/data/saveData.js", "methods": ["POST"] },
-    { "src": "/api/data/(.*)", "dest": "/api/data/getDataById.js", "methods": ["GET"] },
-    { "src": "/api/data/(.*)", "dest": "/api/data/deleteData.js", "methods": ["DELETE"] },
-    { "src": "/api/data/(.*)", "dest": "/api/data/updateData.js", "methods": ["PUT"] },
+    { "src": "/api/data", "dest": "/api/data/getDataList.js", "methods": ["GET"] },
 
     { "src": "/index.html", "dest": "/index.html" },
     { "src": "/team.html", "dest": "/team.html" },
     { "src": "/team", "dest": "/team.html" },
-
     { "src": "/src/(.*)", "dest": "/src/$1" },
-    { "src": "/assets/(.*)", "dest": "/assets/$1" }, 
+    { "src": "/assets/(.*)", "dest": "/assets/$1" },
     {
       "src": "/(.*\\.(js|css|png|jpg|jpeg|gif|svg|ico|webp))",
       "dest": "/$1"
     },
-
-
     { "src": "/", "dest": "/index.html" },
     { "src": "/(.*)", "dest": "/index.html" }
   ]
