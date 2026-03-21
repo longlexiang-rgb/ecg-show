@@ -1,4 +1,4 @@
-
+// API请求模块
 import { API_BASE_URL, USE_MOCK } from './config.js';
 import { getCurrentUser, setCurrentUser, removeCurrentUser, getToken, setToken, removeToken } from './storage.js';
 import { register, login, getDataList, getDataById, saveData, deleteData, updateData } from './api.js';
@@ -61,8 +61,6 @@ function initPage() {
     initPasswordToggle();
 }
 
-
-
 // 显示用户数据
 function showUserData() {
     // 显示登录后导航，隐藏未登录导航
@@ -81,7 +79,8 @@ function showUserData() {
     document.getElementById('auth-container').classList.add('hidden');
     document.getElementById('data-container').classList.remove('hidden');
     document.getElementById('current-page').textContent = '数据管理';
-    loadDataList();
+    // 修复：传用户ID而不是用户名
+    loadDataList(currentUser.id || currentUser._id);
 }
 
 // 显示认证表单
@@ -335,7 +334,7 @@ function bindEvents() {
             registerButton.textContent = '注册中...';
             registerButton.disabled = true;
             
-            await register(username, password);
+            const registerResult = await register(username, password);
             showToast('注册成功，请登录', 'success');
             document.getElementById('register-form').classList.add('hidden');
             document.getElementById('login-form').classList.remove('hidden');
@@ -370,7 +369,11 @@ function bindEvents() {
             loginButton.disabled = true;
             
             const data = await login(username, password);
-            currentUser = { username: data.username };
+            // 修复：保存用户ID和用户名
+            currentUser = { 
+                username: data.username, 
+                id: data.id || data._id // 兼容mock和真实接口的ID字段
+            };
             token = data.token;
             setCurrentUser(currentUser);
             setToken(token);
@@ -444,8 +447,10 @@ function bindEvents() {
             saveButton.textContent = '保存中...';
             saveButton.disabled = true;
             
-            await saveData(name, dataArray, currentUser.username);
-            await loadDataList();
+            // 修复：传用户ID而不是用户名
+            await saveData(name, dataArray, currentUser.id || currentUser._id);
+            // 修复：传用户ID加载列表
+            await loadDataList(currentUser.id || currentUser._id);
             showToast('数据保存成功', 'success');
 
             // 清空表单
@@ -532,13 +537,14 @@ function bindEvents() {
     });
 }
 
-// 加载数据列表
-async function loadDataList() {
+// 加载数据列表（修复：接收userId参数）
+async function loadDataList(userId) {
     const dataList = document.getElementById('data-list');
     showLoading(dataList);
 
     try {
-        const userDataItems = await getDataList(currentUser.username);
+        // 修复：传用户ID查询
+        const userDataItems = await getDataList(userId);
 
         if (userDataItems.length === 0) {
             showEmptyState(dataList);
@@ -674,7 +680,8 @@ async function loadDataList() {
                 // 执行删除操作
                 deleteData(id)
                     .then(() => {
-                        return loadDataList();
+                        // 修复：传用户ID重新加载列表
+                        return loadDataList(currentUser.id || currentUser._id);
                     })
                     .then(() => {
                         // 检查并清除波形图表
@@ -888,7 +895,8 @@ function showEditForm(dataItem) {
         
         try {
             await updateData(dataItem.id || dataItem._id, newName, dataArray);
-            await loadDataList();
+            // 修复：传用户ID重新加载列表
+            await loadDataList(currentUser.id || currentUser._id);
             showToast('修改成功', 'success');
             document.getElementById('edit-form-container').remove();
         } catch (error) {
