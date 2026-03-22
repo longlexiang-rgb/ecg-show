@@ -18,15 +18,16 @@
     { "src": "assets/**/*", "use": "@vercel/static" }
   ],
   "routes": [
-    { "src": "/api/auth/register", "dest": "/api/auth/register.js", "methods": ["POST"] },
-    { "src": "/api/auth/login", "dest": "/api/auth/login.js", "methods": ["POST"] },
+    
+    { "src": "/api/auth/register", "dest": "/api/auth/register.js" },
+    { "src": "/api/auth/login", "dest": "/api/auth/login.js" },
 
-    { "src": "/api/data/(.*)", "dest": "/api/data/deleteData.js?id=$1", "methods": ["DELETE"] },
-    { "src": "/api/data/(.*)", "dest": "/api/data/updateData.js?id=$1", "methods": ["PUT"] },
-    { "src": "/api/data/(.*)", "dest": "/api/data/getDataById.js?id=$1", "methods": ["GET"] },
+    { "src": "/api/data/(.*)", "dest": "/api/data/deleteData.js?id=$1" },
+    { "src": "/api/data/(.*)", "dest": "/api/data/updateData.js?id=$1" },
+    { "src": "/api/data/(.*)", "dest": "/api/data/getDataById.js?id=$1" },
 
-    { "src": "/api/data", "dest": "/api/data/saveData.js", "methods": ["POST"] },
-    { "src": "/api/data", "dest": "/api/data/getDataList.js", "methods": ["GET"] },
+    { "src": "/api/data", "dest": "/api/data/saveData.js" },
+    { "src": "/api/data", "dest": "/api/data/getDataList.js" },
 
     { "src": "/index.html", "dest": "/index.html" },
     { "src": "/team.html", "dest": "/team.html" },
