@@ -1,6 +1,7 @@
 {
   "version": 1,
   "include": [
+    // 保留你原有静态路由规则
     { "src": "/index.html", "dest": "/index.html" },
     { "src": "/team.html", "dest": "/team.html" },
     { "src": "/team", "dest": "/team.html" },
@@ -8,9 +9,11 @@
     { "src": "/assets/*", "dest": "/assets/$1" },
     { "src": "/(.*\\.(js|css|png|jpg|jpeg|gif|svg|ico|webp))", "dest": "/$1" },
     { "src": "/", "dest": "/index.html" },
-    { "src": "/*", "dest": "/index.html" }
+    { "src": "/*", "dest": "/index.html" },
+
+    // 🔴 新增：强制 API 文件以 RAW 模式返回（关键！）
+    { "src": "/api/*/*.js", "dest": "/api/$1/$2.js", "headers": { "Content-Type": "text/javascript" } },
+    { "src": "/api/*.js", "dest": "/api/$1.js", "headers": { "Content-Type": "text/javascript" } }
   ],
-  "exclude": [
-    "/api/*"
-  ]
+  "exclude": []
 }
