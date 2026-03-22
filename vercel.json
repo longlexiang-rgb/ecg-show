@@ -11,25 +11,33 @@
       ]
     }
   ],
+  "builds": [
+    { "src": "api/**/*.js", "use": "@vercel/node" },
+    { "src": "*.html", "use": "@vercel/static" },
+    { "src": "src/**/*", "use": "@vercel/static" },
+    { "src": "assets/**/*", "use": "@vercel/static" }
+  ],
   "routes": [
     
-    { "src": "/api/auth/register", "dest": "/api/auth/register.js" },
-    { "src": "/api/auth/login", "dest": "/api/auth/login.js" },
+    { "src": "/api/auth/register", "dest": "/api/auth/register.js", "methods": ["POST", "OPTIONS"] },
+    { "src": "/api/auth/login", "dest": "/api/auth/login.js", "methods": ["POST", "OPTIONS"] },
 
     
-    { "src": "/api/data/([a-fA-F0-9]{24})", "methods": ["DELETE", "OPTIONS"], "dest": "/api/data/deleteData.js?id=$1" },
-    { "src": "/api/data/([a-fA-F0-9]{24})", "methods": ["PUT", "OPTIONS"], "dest": "/api/data/updateData.js?id=$1" },
-    { "src": "/api/data/([a-fA-F0-9]{24})", "methods": ["GET", "OPTIONS"], "dest": "/api/data/getDataById.js?id=$1" },
+    { "src": "/api/data/(.*)", "dest": "/api/data/deleteData.js?id=$1", "methods": ["DELETE", "OPTIONS"] },
+    { "src": "/api/data/(.*)", "dest": "/api/data/updateData.js?id=$1", "methods": ["PUT", "OPTIONS"] },
+    { "src": "/api/data/(.*)", "dest": "/api/data/getDataById.js?id=$1", "methods": ["GET", "OPTIONS"] },
 
-    
-    { "src": "/api/data", "methods": ["POST", "OPTIONS"], "dest": "/api/data/saveData.js" },
-    { "src": "/api/data", "methods": ["GET", "OPTIONS"], "dest": "/api/data/getDataList.js" },
+   
+    { "src": "/api/data", "dest": "/api/data/saveData.js", "methods": ["POST", "OPTIONS"] },
+    { "src": "/api/data", "dest": "/api/data/getDataList.js", "methods": ["GET", "OPTIONS"] },
 
-    { "src": "/index.html", "dest": "/index.html" },
+     { "src": "/index.html", "dest": "/index.html" },
     { "src": "/team.html", "dest": "/team.html" },
+    { "src": "/team", "dest": "/team.html" },
     { "src": "/src/(.*)", "dest": "/src/$1" },
     { "src": "/assets/(.*)", "dest": "/assets/$1" },
     { "src": "/(.*\\.(js|css|png|jpg|jpeg|gif|svg|ico|webp))", "dest": "/$1" },
+    { "src": "/", "dest": "/index.html" },
     { "src": "/(.*)", "dest": "/index.html" }
   ]
 }
