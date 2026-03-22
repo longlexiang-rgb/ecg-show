@@ -14,5 +14,5 @@
     { "src": "/api/*/*.js", "dest": "/api/$1/$2.js", "headers": { "Content-Type": "text/javascript" } },
     { "src": "/api/*.js", "dest": "/api/$1.js", "headers": { "Content-Type": "text/javascript" } }
   ],
-  "exclude": []
+  "exclude": ["/api/**/*.js"]
 }
