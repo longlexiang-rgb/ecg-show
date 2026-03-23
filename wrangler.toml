@@ -1,1 +1,3 @@
+name = "ecg-show"
 compatibility_flags = [ "nodejs_compat" ]
+pages_build_output_dir = "." 
